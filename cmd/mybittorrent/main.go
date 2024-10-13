@@ -3,9 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
-	"strconv"
-	"unicode"
 	// bencode "github.com/jackpal/bencode-go" // Available if you need it!
 )
 
@@ -15,29 +14,115 @@ var _ = json.Marshal
 // Example:
 // - 5:hello -> hello
 // - 10:hello12345 -> hello12345
-func decodeBencode(bencodedString string) (interface{}, error) {
-	if unicode.IsDigit(rune(bencodedString[0])) {
-		var firstColonIndex int
 
-		for i := 0; i < len(bencodedString); i++ {
-			if bencodedString[i] == ':' {
-				firstColonIndex = i
-				break
-			}
+func decodeString(b string, st int) (x interface{}, i int, err error) {
+	var l int
+
+	i = st
+
+	for i < len(b) && b[i] >= '0' && b[i] <= '9' {
+		l = l*10 + (int(b[i]) - '0')
+		i++
+	}
+	if i == len(b) || b[i] != ':' {
+		return "", st, fmt.Errorf("Bad String")
+	}
+
+	i++
+
+	if i+1 > len(b) {
+		return "", st, fmt.Errorf("Bad String")
+	}
+
+	x = b[i : i+l]
+	i += l
+
+	return x, i, nil
+}
+
+func decodeInt(b string, st int) (x int, i int, err error) {
+	i = st
+	i++
+
+	if i == len(b) {
+		return 0, st, fmt.Errorf("Bad Int")
+	}
+
+	neg := false
+
+	if b[i] == '-' {
+
+		neg = true
+
+		i++
+
+	}
+
+	for i < len(b) && b[i] >= '0' && b[i] <= '9' {
+
+		x = x*10 + (int(b[i]) - '0')
+
+		i++
+
+	}
+
+	if i == len(b) || b[i] != 'e' {
+		return 0, st, fmt.Errorf("Bad Int")
+	}
+
+	i++
+
+	if neg {
+		x = -x
+	}
+
+	return x, i, nil
+}
+
+func decodeList(b string, st int) (l []interface{}, i int, err error) {
+	i = st
+	i++
+
+	l = make([]interface{}, 0)
+
+	for {
+		if i >= len(b) {
+			return nil, st, fmt.Errorf("Bad List")
 		}
 
-		lengthStr := bencodedString[:firstColonIndex]
+		if b[i] == 'e' {
+			break
+		}
 
-		length, err := strconv.Atoi(lengthStr)
+		var x interface{}
+
+		x, i, err = decode(b, i)
 		if err != nil {
-			return "", err
+			return nil, i, err
 		}
 
-		return bencodedString[firstColonIndex+1 : firstColonIndex+1+length], nil
-	} else if (bencodedString[0] == 'i') && (bencodedString[len(bencodedString)-1] == 'e') {
-		return strconv.Atoi(bencodedString[1 : len(bencodedString)-1])
-	} else {
-		return "", fmt.Errorf("Only strings are supported at the moment")
+		l = append(l, x)
+	}
+
+	return l, i, nil
+}
+
+func decode(b string, st int) (x interface{}, i int, err error) {
+	if st == len(b) {
+		return nil, st, io.ErrUnexpectedEOF
+	}
+
+	i = st
+
+	switch {
+	case b[0] == 'i':
+		return decodeInt(b, i)
+	case b[i] == 'l':
+		return decodeList(b, i)
+	case b[i] >= '0' && b[i] <= '9':
+		return decodeString(b, i)
+	default:
+		return nil, st, fmt.Errorf("unexpected value %q", b[i])
 	}
 }
 
