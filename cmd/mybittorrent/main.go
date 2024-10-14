@@ -60,9 +60,9 @@ func main() {
 
 		bencode.Marshal(h, result.Info)
 
-		fmt.Printf("Tracker URL: %v", decoded.(map[string]any)["announce"])
-		fmt.Printf("Length: %v", decoded.(map[string]any)["info"].(map[string]any)["length"])
-		fmt.Printf("Info Hash: %x", h.Sum(nil))
+		fmt.Print("Tracker URL: ", decoded.(map[string]any)["announce"])
+		fmt.Print("Length: ", decoded.(map[string]any)["info"].(map[string]any)["length"])
+		fmt.Print("Info Hash: ", h.Sum(nil))
 
 	default:
 		fmt.Println("Unknown command: " + command)
