@@ -52,17 +52,13 @@ func main() {
 	case "info":
 		var result Metafile
 
-		inputFile := os.Args[2]
-		contents, _ := os.ReadFile(inputFile)
-		decoded, _ := bencode.Decode(bytes.NewReader([]byte(contents)))
-
 		h := sha1.New()
 
 		bencode.Marshal(h, result.Info)
 
-		fmt.Print("Tracker URL: ", decoded.(map[string]any)["announce"])
-		fmt.Print("Length: ", decoded.(map[string]any)["info"].(map[string]any)["length"])
-		fmt.Print("Info Hash: ", h.Sum(nil))
+		fmt.Printf("Tracker URL: %v\n", result.Announce)
+		fmt.Printf("Length: %v\n", result.Info.Length)
+		fmt.Printf("Info Hash: %x\n", h.Sum(nil))
 
 	default:
 		fmt.Println("Unknown command: " + command)
