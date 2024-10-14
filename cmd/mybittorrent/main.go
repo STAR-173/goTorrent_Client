@@ -50,7 +50,19 @@ func main() {
 		fmt.Println(string(jsonOutput))
 
 	case "info":
+		inputFile := os.Args[2]
+		contents, err := os.ReadFile(inputFile)
+
 		var result Metafile
+
+		err = bencode.Unmarshal(bytes.NewReader([]byte(contents)), &result)
+		if err != nil {
+
+			fmt.Println(err)
+
+			return
+
+		}
 
 		h := sha1.New()
 
