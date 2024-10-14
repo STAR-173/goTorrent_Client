@@ -21,7 +21,8 @@ func main() {
 
 	command := os.Args[1]
 
-	if command == "decode" {
+	switch command {
+	case "decode":
 		// Uncomment this block to pass the first stage
 
 		bencodedValue := os.Args[2]
@@ -34,7 +35,16 @@ func main() {
 
 		jsonOutput, _ := json.Marshal(decoded)
 		fmt.Println(string(jsonOutput))
-	} else {
+
+	case "info":
+		inputFile := os.Args[2]
+		contents, _ := os.ReadFile(inputFile)
+		decoded, _ := bencode.Decode(bytes.NewReader([]byte(contents)))
+
+		fmt.Println("Tracker URL: ", decoded.(map[string]any)["announce"])
+		fmt.Println("Length: ", decoded.(map[string]any)["info"].(map[string]any)["length"])
+
+	default:
 		fmt.Println("Unknown command: " + command)
 		os.Exit(1)
 	}
