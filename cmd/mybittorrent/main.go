@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha1"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -12,6 +13,18 @@ import (
 
 // Ensures gofmt doesn't remove the "os" encoding/json import (feel free to remove this!)
 var _ = json.Marshal
+
+type Metafile struct {
+	Announce string   `bencode:"announce"`
+	Info     Metainfo `bencode:"info"`
+}
+
+type Metainfo struct {
+	PieceLength int    `bencode:"piece length"`
+	Pieces      string `bencode:"pieces"`
+	Length      int    `bencode:"length"`
+	Name        string `bencode:"name"`
+}
 
 // Example:
 // - 5:hello -> hello
@@ -37,12 +50,19 @@ func main() {
 		fmt.Println(string(jsonOutput))
 
 	case "info":
+		var result Metafile
+
 		inputFile := os.Args[2]
 		contents, _ := os.ReadFile(inputFile)
 		decoded, _ := bencode.Decode(bytes.NewReader([]byte(contents)))
 
+		h := sha1.New()
+
+		bencode.Marshal(h, result.Info)
+
 		fmt.Print("Tracker URL: ", decoded.(map[string]any)["announce"])
 		fmt.Print("Length: ", decoded.(map[string]any)["info"].(map[string]any)["length"])
+		fmt.Print("Info Hash: ", h.Sum(nil))
 
 	default:
 		fmt.Println("Unknown command: " + command)
