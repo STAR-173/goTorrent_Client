@@ -41,7 +41,7 @@ func main() {
 		contents, _ := os.ReadFile(inputFile)
 		decoded, _ := bencode.Decode(bytes.NewReader([]byte(contents)))
 
-		fmt.Println("Tracker URL: ", decoded.(map[string]any)["announce"])
+		fmt.Printf("Tracker URL: ", decoded.(map[string]any)["announce"])
 		// fmt.Println("Length: ", decoded.(map[string]any)["info"].(map[string]any)["length"])
 
 	default:
