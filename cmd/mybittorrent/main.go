@@ -42,7 +42,7 @@ func main() {
 		decoded, _ := bencode.Decode(bytes.NewReader([]byte(contents)))
 
 		fmt.Print("Tracker URL: ", decoded.(map[string]any)["announce"])
-		// fmt.Println("Length: ", decoded.(map[string]any)["info"].(map[string]any)["length"])
+		fmt.Print("Length: ", decoded.(map[string]any)["info"].(map[string]any)["length"])
 
 	default:
 		fmt.Println("Unknown command: " + command)
